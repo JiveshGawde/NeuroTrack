@@ -1,4 +1,4 @@
 data/
-venv/
+neurotrack/
 __pycache__/
 *.pth
