@@ -1,5 +1,5 @@
 # NeuroTrack: Alzheimer’s Stage Prediction from MRI
-![[output 1.png]]
+![[output.png]]
 ```ad-attention
 This project is currently a work in progress.
 ```
