@@ -1,8 +1,10 @@
-# NeuroTrack: Alzheimer’s Stage Prediction from MRI
-![[output.png]]
-```ad-attention
-This project is currently a work in progress.
-```
+# NeuroTrack: Alzheimer’s Disease Stage Prediction from MRI
+
+<img width="1500" height="214" alt="image" src="https://github.com/user-attachments/assets/93e17971-ef99-4bac-815b-ee63c731ef21" />
+
+
+> [!WARNING]
+> This project is currently a work in progress.
 
 Deep learning-based system for stage-wise classification of Alzheimer’s disease using brain MRI scans, with a focus on modeling structural patterns from slice-based data.
 
@@ -19,7 +21,9 @@ This project explores a data-driven approach to classify stages of Alzheimer’s
 ## Dataset
 
 - Source: Kaggle (Augmented Alzheimer MRI Dataset)
-    
+
+- Dataset Link: https://kaggle.com/datasets/yiweilu2033/well-documented-alzheimers-dataset (Currently Not Accessible)
+
 - Classes:
     
     - Non Demented
@@ -39,9 +43,8 @@ This project explores a data-driven approach to classify stages of Alzheimer’s
     - Test (15%)
         
 
-```ad-note
-Training data includes augmented images, while evaluation is performed on primarily non-augmented data to ensure unbiased assessment.
-```
+> [!NOTE]
+> Training data includes augmented images, while evaluation is performed on primarily non-augmented data to ensure unbiased assessment.
 
 ---
 
