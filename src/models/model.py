@@ -1,7 +1,5 @@
 from typing import Literal, Optional
-import torch
 import torch.nn as nn
-
 
 DEFAULT_KERNEL = 3
 DEFAULT_STRIDE = 2
@@ -9,21 +7,27 @@ DEFAULT_PADDING = 0
 DEFAULT_DROPOUT_P = 0.5
 DEFAULT_POOL_K = 2
 
+
 class NeuroTrackModel(nn.Module):
 
     def __init__(self, input_channel: int, hidden_channels: list[int], output_channel: int, classes: int,
-                 stride: Optional[list[int | None]] = None, 
-                 kernel: Optional[list[int | None]] = None, 
+                 stride: Optional[list[int | None]] = None,
+                 kernel: Optional[list[int | None]] = None,
                  dropout: Optional[list[float | None]] = None,
                  padding: Optional[list[int | None]] = None,
                  pools: Optional[list[int | None]] = None,
                  pool_type: Literal['max'] | Literal['avg'] = "max"):
         super().__init__()
-        assert len(hidden_channels) + 1 == len(stride) if stride is not None else True, "stride should have the same length as hidden channels + 1"
-        assert len(hidden_channels) + 1 == len(kernel) if kernel is not None else True, "kernel should have the same length as hidden channels + 1"
-        assert len(hidden_channels) + 1 == len(dropout) if dropout is not None else True, "dropout should have the same length as hidden channels + 1"
-        assert len(hidden_channels) + 1 == len(padding) if padding is not None else True, "padding should have the same length as hidden channels + 1"
-        assert len(hidden_channels) + 1 == len(pools) if pools is not None else True, "pools should have the same length as hidden channels + 1"
+        assert len(hidden_channels) + 1 == len(
+            stride) if stride is not None else True, "stride should have the same length as hidden channels + 1"
+        assert len(hidden_channels) + 1 == len(
+            kernel) if kernel is not None else True, "kernel should have the same length as hidden channels + 1"
+        assert len(hidden_channels) + 1 == len(
+            dropout) if dropout is not None else True, "dropout should have the same length as hidden channels + 1"
+        assert len(hidden_channels) + 1 == len(
+            padding) if padding is not None else True, "padding should have the same length as hidden channels + 1"
+        assert len(hidden_channels) + 1 == len(
+            pools) if pools is not None else True, "pools should have the same length as hidden channels + 1"
 
         self.hidden_channels: list[int] = hidden_channels
         self.input_channel: int = input_channel
@@ -53,14 +57,13 @@ class NeuroTrackModel(nn.Module):
 
             if pools is not None and pools[i - 1] is not None:
                 pool_k = pools[i - 1]
-            layers.append(MiniNeuroBlock(input_channel=hidden_channels1[i-1], 
-                                         output_channel= hidden_channels1[i],
+            layers.append(MiniNeuroBlock(input_channel=hidden_channels1[i-1],
+                                         output_channel=hidden_channels1[i],
                                          kernel_size=kernel_size,
-                                         stride=stride_size, 
-                                         padding=padding_size, 
-                                         pool_k=pool_k, 
+                                         stride=stride_size,
+                                         padding=padding_size,
+                                         pool_k=pool_k,
                                          dropout_p=dropout_p, pool_type=pool_type))
-
 
         self.network_layers = nn.ModuleList(layers)
 
@@ -80,7 +83,6 @@ class NeuroTrackModel(nn.Module):
 
         for layer in self.network_layers:
             x = layer(x)
-        
         x = self.flatten(x)
 
         x = self.latent_space(x)
@@ -96,14 +98,14 @@ class NeuroTrackModel(nn.Module):
 
 class MiniNeuroBlock(nn.Module):
 
-    def __init__(self, input_channel: int, 
-                 output_channel: int, 
-                 kernel_size: int = DEFAULT_KERNEL, 
-                 stride: int = DEFAULT_STRIDE, 
+    def __init__(self, input_channel: int,
+                 output_channel: int,
+                 kernel_size: int = DEFAULT_KERNEL,
+                 stride: int = DEFAULT_STRIDE,
                  padding: int = DEFAULT_PADDING,
                  dropout_p: float = DEFAULT_DROPOUT_P,
                  pool_k: int = DEFAULT_POOL_K,
-                 pool_type: Literal['max'] | Literal['avg']  = 'max'):
+                 pool_type: Literal['max'] | Literal['avg'] = 'max'):
 
         super().__init__()
         match pool_type:
@@ -114,9 +116,9 @@ class MiniNeuroBlock(nn.Module):
             case _:
                 raise AssertionError("pool type not valid")
 
-        self.conv1 = nn.Conv2d(input_channel, output_channel, 
+        self.conv1 = nn.Conv2d(input_channel, output_channel,
                                kernel_size=kernel_size, stride=stride, padding=padding)
-        
+
         self.batch_norm = nn.BatchNorm2d(output_channel)
         self.relu = nn.ReLU()
         self.dropout = nn.Dropout2d(dropout_p)
@@ -130,4 +132,3 @@ class MiniNeuroBlock(nn.Module):
 
         x = self.dropout(x)
         return x
-

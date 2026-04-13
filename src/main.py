@@ -11,8 +11,9 @@ if __name__ == "__main__":
     # images, labels = data[1]
 
     filtered_data = data.filter(
-        label="non", slice_le=125, scan="MR1_2", not_slices=[123, 124])
+        label="all", distinct_patients=True, scan="MR1_2")
 
+    print(len(filtered_data))
     # for i, im in enumerate(images):
     #     plt.subplot(4, 1, i+1)
     #     plt.imshow(im.squeeze(0))
@@ -20,7 +21,6 @@ if __name__ == "__main__":
     # plt.suptitle(f"Label: {labels.item()} ")
     # plt.show()
 
-    print(len(filtered_data))
     print(filtered_data[:10])
     for j, (patient_id, scan, slice, path, label) in enumerate(filtered_data[:5]):
         plt.subplot(5, 1, j+1)

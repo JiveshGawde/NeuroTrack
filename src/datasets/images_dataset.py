@@ -1,5 +1,6 @@
 from collections import defaultdict
 from typing import Literal, NotRequired, Optional, Tuple, TypedDict, Unpack
+from matplotlib import use
 import torch
 import re
 from torchvision import transforms
@@ -41,6 +42,10 @@ class AlzheimersDatasetFilterKwargs(TypedDict):
     not_scans: NotRequired[list[str]]
     slice_le: NotRequired[int]
     slice_ge: NotRequired[int]
+    distinct_patients: NotRequired[bool]
+    distinct_scans: NotRequired[bool]
+    distinct_patients_strategy: NotRequired[str |
+                                            Literal['first', 'middle', 'last']]
 
 
 class AlzheimersDataset(Dataset):
@@ -133,6 +138,9 @@ class AlzheimersDataset(Dataset):
         scans: list[str]
         not_scans: list[str]
         not_slices list[str]
+        distinct_patients: bool
+        distinct_scans: bool
+        distinct_patients_strategy: str
         """
 
         assert not (
@@ -144,17 +152,52 @@ class AlzheimersDataset(Dataset):
 
         assert not (
             'patient_ids' in kwargs and 'not_patient_ids' in kwargs), "cannot use both patient_ids, and not_patient_ids, choose one"
+
+        assert not (
+            'patient_ids' in kwargs and kwargs.get('distinct_patients', False)
+        ), "cannot use patient_ids with distinct_patients — patient_ids already restricts the patient set"
+
         assert not (
             'slices' in kwargs and 'not_slices' in kwargs), "cannot use both slices, and not_slices, choose one"
         assert not (
             'scans' in kwargs and 'not_scans' in kwargs), "cannot use both scans, and not_scans, choose one"
 
+        assert not (
+            'distinct_scans' in kwargs and not kwargs.get(
+                'distinct_patients', False)
+        ), "distinct_scans requires distinct_patients=True"
+        assert not (
+            'distinct_patients_strategy' in kwargs and not kwargs.get(
+                'distinct_patients', False)
+        ), "distinct_patients_strategy requires distinct_patients=True"
+
         get_class: str = kwargs.get('label', 'all')
         filtered = self.get_unique_slices(
             get_match_label_folder(get_class), extension)
 
+        use_distinct = kwargs.get('distinct_patients', False)
+        has_slice_filter = any(k in kwargs for k in (
+            'slices', 'slice_ge', 'slice_le', 'not_slices'))
         results = []
 
+        represent = {}
+        if use_distinct and not has_slice_filter:
+            strategy = kwargs.get('distinct_patients_strategy', 'middle')
+            patients_slice_map = defaultdict(list)
+
+            for patient, scan, slice_num, *_ in filtered:
+                patients_slice_map[patient].append(slice_num)
+
+            for patient, slice_nums in patients_slice_map.items():
+                slice_nums.sort()
+                if strategy == 'middle':
+                    represent[patient] = slice_nums[len(slice_nums) // 2]
+                elif strategy == 'first':
+                    represent[patient] = slice_nums[0]
+                else:
+                    represent[patient] = slice_nums[-1]
+
+        distinct_patients = set()
         for patient, scan, slice_num, path, label in filtered:
             if 'not_patient_ids' in kwargs and patient in kwargs['not_patient_ids']:
                 continue
@@ -185,6 +228,16 @@ class AlzheimersDataset(Dataset):
 
             if 'slice_ge' in kwargs and slice_num < kwargs['slice_ge']:
                 continue
+
+            if use_distinct:
+                if not has_slice_filter:
+                    if slice_num != represent[patient]:
+                        continue
+                track_key = patient if kwargs.get(
+                    'distinct_scans', True) else (patient, scan)
+                if track_key in distinct_patients:
+                    continue
+                distinct_patients.add(track_key)
 
             results.append((patient, scan, slice_num, path, label))
 
