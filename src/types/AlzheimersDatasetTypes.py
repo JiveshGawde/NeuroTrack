@@ -3,7 +3,8 @@ from typing import Literal, Optional
 from collections import defaultdict
 from functools import reduce
 
-GROUPBYFIELD = Literal['patient_id', 'scan_id', 'slice_num', 'path', 'label', 'label_str']
+GROUPBYFIELD = Literal['patient_id', 'scan_id',
+                       'slice_num', 'path', 'label', 'label_str']
 
 
 @dataclass
@@ -18,24 +19,30 @@ class AlzheimerDataSetAtom:
 
 class AlzheimersDatasetGroupBy:
     def __init__(self, group_data: dict[str | tuple, list[AlzheimerDataSetAtom]], by: GROUPBYFIELD | list[GROUPBYFIELD]):
-        self.grouped: dict[str | tuple, list[AlzheimerDataSetAtom]] = group_data
+        self.grouped: dict[str | tuple,
+                           list[AlzheimerDataSetAtom]] = group_data
         self.by: GROUPBYFIELD | list[GROUPBYFIELD] = by
 
-
     def count(self) -> dict[str, int]:
-        return { k:len(value) for k, value in self.grouped.items() }
+        return {k: len(value) for k, value in self.grouped.items()}
+
     def sum(self, field: str, /) -> dict[str, int]:
-        return {k:reduce(lambda x,y: x + getattr(y, field), value, 0) for k, value in self.grouped.items()}
+        return {k: reduce(lambda x, y: x + getattr(y, field), value, 0) for k, value in self.grouped.items()}
+
     def avg(self, field: str, /) -> dict[str, int | float]:
-        return {k:reduce(lambda x,y: (x + getattr(y, field)), value, 0) / len(value) for k, value in self.grouped.items()}
+        return {k: reduce(lambda x, y: (x + getattr(y, field)), value, 0) / len(value) for k, value in self.grouped.items()}
+
     def first(self) -> dict[str, AlzheimerDataSetAtom]:
-        return {k:value[0] for k,value in self.grouped.items()}
+        return {k: value[0] for k, value in self.grouped.items()}
+
     def last(self) -> dict[str, AlzheimerDataSetAtom]:
-        return {k:value[-1] for k,value in self.grouped.items()}
+        return {k: value[-1] for k, value in self.grouped.items()}
+
     def min(self, field: str, /) -> dict[str, int | float]:
-        return {k: min(value,key= lambda x: getattr(x, field)) for k, value in self.grouped.items()}
+        return {k: min(value, key=lambda x: getattr(x, field)) for k, value in self.grouped.items()}
+
     def max(self, field: str, /) -> dict[str, int | float]:
-        return {k: max(value,key= lambda x: getattr(x, field)) for k, value in self.grouped.items()}
+        return {k: max(value, key=lambda x: getattr(x, field)) for k, value in self.grouped.items()}
 
 
 class AlzheimersDatasetFilters:
@@ -57,6 +64,7 @@ class AlzheimersDatasetFilters:
                 group[key].append(result)
 
         return AlzheimersDatasetGroupBy(dict(group), by=by)
+
     def __len__(self):
         return len(self.results)
 
@@ -65,4 +73,3 @@ class AlzheimersDatasetFilters:
 
     def __getitem__(self, index: int):
         return self.results[index]
-
