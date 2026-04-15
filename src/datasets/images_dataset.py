@@ -8,6 +8,7 @@ import os
 import cv2
 from torch.utils.data import Dataset
 from src.config import FULL_DATA_PATH
+from types.AlzheimersDatasetTypes import AlzheimerDataSetAtom, AlzheimersDatasetFilters
 
 MILD_DEMENTED_PATH: str = os.path.abspath(
     os.path.join(FULL_DATA_PATH, "MildDemented/MildDemented"))
@@ -152,7 +153,7 @@ class AlzheimersDataset(Dataset):
                 'distinct_patients', False)
         ), "distinct_patients_strategy requires distinct_patients=True"
 
-    def filter(self, extension: str = "png", **kwargs: Unpack[AlzheimersDatasetFilterKwargs]) -> list[tuple[str, str, int, str, int]]:
+    def filter(self, extension: str = "png", **kwargs: Unpack[AlzheimersDatasetFilterKwargs]) -> AlzheimersDatasetFilters:
         """
         ACCEPTABLE ARGUMENTS:
         label: str
@@ -180,7 +181,6 @@ class AlzheimersDataset(Dataset):
         use_distinct = kwargs.get('distinct_patients', False)
         has_slice_filter = any(k in kwargs for k in (
             'slices', 'slice_ge', 'slice_le', 'not_slices'))
-        results = []
 
         represent = {}
         if use_distinct and not has_slice_filter:
@@ -200,6 +200,8 @@ class AlzheimersDataset(Dataset):
                     represent[patient] = slice_nums[-1]
 
         distinct_patients = set()
+
+        result_filters = AlzheimersDatasetFilters()
         for patient, scan, slice_num, path, label in filtered:
             if 'not_patient_ids' in kwargs and patient in kwargs['not_patient_ids']:
                 continue
@@ -240,10 +242,9 @@ class AlzheimersDataset(Dataset):
                 if track_key in distinct_patients:
                     continue
                 distinct_patients.add(track_key)
+            result_filters.append(AlzheimerDataSetAtom(patient_id=patient, scan_id=scan, slice_num=slice_num, path=path, label_str=get_match_label_str(label), label=label))
 
-            results.append((patient, scan, slice_num, path, label))
-
-        return results
+        return result_filters 
 
 
 def get_match_label_folder(string: Literal['all', 'non', 'demented', 'mild', 'very-mild', 'moderate'] | str):
@@ -264,3 +265,18 @@ def get_match_label_folder(string: Literal['all', 'non', 'demented', 'mild', 've
             return [(3, MODERATE_DEMENTED_PATH)]
         case _:
             return LABEL_FOLDERS
+
+
+def get_match_label_str(number: int) -> Optional[str]:
+    match number:
+        case 0:
+            return "non"
+        case 1:
+            return "very-mild"
+        case 2:
+            return "mild"
+        case 3:
+            return "moderate"
+
+        case _:
+            return None
