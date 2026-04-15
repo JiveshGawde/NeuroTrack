@@ -8,7 +8,7 @@ import os
 import cv2
 from torch.utils.data import Dataset
 from src.config import FULL_DATA_PATH
-from types.AlzheimersDatasetTypes import AlzheimerDataSetAtom, AlzheimersDatasetFilters
+from src.types.AlzheimersDatasetTypes import AlzheimerDataSetAtom, AlzheimersDatasetFilters
 
 MILD_DEMENTED_PATH: str = os.path.abspath(
     os.path.join(FULL_DATA_PATH, "MildDemented/MildDemented"))
