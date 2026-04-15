@@ -8,8 +8,7 @@ def train(model, data):
 
     
 
-def training(epochs: int) -> None:
+# def training(epochs: int) -> None:
 
-    for i in range(0, epochs):
-
-        print(f"current epoch: {i+1}/{epochs+1}, training_accuracy: {}, validation_accuracy: {}")
+#     for i in range(0, epochs):
+#         print(f"current epoch: {i+1}/{epochs+1}, training_accuracy: {}, validation_accuracy: {}")
