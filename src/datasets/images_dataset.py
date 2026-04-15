@@ -45,7 +45,7 @@ class AlzheimersDatasetFilterKwargs(TypedDict):
     distinct_patients: NotRequired[bool]
     distinct_scans: NotRequired[bool]
     distinct_patients_strategy: NotRequired[str |
-                                            Literal['first', 'middle', 'last']]
+                                            Literal['first', 'quarter', 'middle', 'half-quarter', 'last']]
 
 
 class AlzheimersDataset(Dataset):
@@ -196,6 +196,10 @@ class AlzheimersDataset(Dataset):
                     represent[patient] = slice_nums[len(slice_nums) // 2]
                 elif strategy == 'first':
                     represent[patient] = slice_nums[0]
+                elif strategy == 'quarter':
+                    represent[patient] = slice_nums[len(slice_nums) // 4]
+                elif strategy == 'half-quarter':
+                    represent[patient] = slice_nums[(3*len(slice_nums) // 4)]
                 else:
                     represent[patient] = slice_nums[-1]
 
@@ -242,9 +246,10 @@ class AlzheimersDataset(Dataset):
                 if track_key in distinct_patients:
                     continue
                 distinct_patients.add(track_key)
-            result_filters.append(AlzheimerDataSetAtom(patient_id=patient, scan_id=scan, slice_num=slice_num, path=path, label_str=get_match_label_str(label), label=label))
+            result_filters.append(AlzheimerDataSetAtom(patient_id=patient, scan_id=scan,
+                                  slice_num=slice_num, path=path, label_str=get_match_label_str(label), label=label))
 
-        return result_filters 
+        return result_filters
 
 
 def get_match_label_folder(string: Literal['all', 'non', 'demented', 'mild', 'very-mild', 'moderate'] | str):
