@@ -1,6 +1,5 @@
 from collections import defaultdict
 from typing import Literal, NotRequired, Optional, Tuple, TypedDict, Unpack
-from matplotlib import use
 import torch
 import re
 from torchvision import transforms
@@ -124,25 +123,7 @@ class AlzheimersDataset(Dataset):
 
         return m.group("patient"), m.group("scan"), int(m.group("slice"))
 
-    def filter(self, extension: str = "png", **kwargs: Unpack[AlzheimersDatasetFilterKwargs]) -> list[tuple[str, str, int, str, int]]:
-        """
-        ACCEPTABLE ARGUMENTS:
-        label: str
-        slices: list[str]
-        patient_id: str
-        not_patient_ids: str
-        patient_ids: list[str]
-        slice_le: int
-        slice_ge: int
-        scan: str
-        scans: list[str]
-        not_scans: list[str]
-        not_slices list[str]
-        distinct_patients: bool
-        distinct_scans: bool
-        distinct_patients_strategy: str
-        """
-
+    def __asserts_filter(self, kwargs):
         assert not (
             'patient_id' in kwargs and 'patient_ids' in kwargs), "both patient_id and patient_ids cannot be selected, use either one"
         assert not (
@@ -170,6 +151,27 @@ class AlzheimersDataset(Dataset):
             'distinct_patients_strategy' in kwargs and not kwargs.get(
                 'distinct_patients', False)
         ), "distinct_patients_strategy requires distinct_patients=True"
+
+    def filter(self, extension: str = "png", **kwargs: Unpack[AlzheimersDatasetFilterKwargs]) -> list[tuple[str, str, int, str, int]]:
+        """
+        ACCEPTABLE ARGUMENTS:
+        label: str
+        slices: list[str]
+        patient_id: str
+        not_patient_ids: str
+        patient_ids: list[str]
+        slice_le: int
+        slice_ge: int
+        scan: str
+        scans: list[str]
+        not_scans: list[str]
+        not_slices list[str]
+        distinct_patients: bool
+        distinct_scans: bool
+        distinct_patients_strategy: str
+        """
+
+        self.__asserts_filter(kwargs)
 
         get_class: str = kwargs.get('label', 'all')
         filtered = self.get_unique_slices(
